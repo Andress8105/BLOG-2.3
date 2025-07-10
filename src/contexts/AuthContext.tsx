@@ -26,6 +26,39 @@ export const useAuth = () => {
   return context;
 };
 
+// Session duration: 30 minutes
+const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+const isTokenExpired = (timestamp: number) => {
+  return Date.now() - timestamp > SESSION_DURATION;
+};
+
+const setTokenWithTimestamp = (token: string) => {
+  const tokenData = {
+    token,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('authData', JSON.stringify(tokenData));
+};
+
+const getValidToken = () => {
+  try {
+    const authData = localStorage.getItem('authData');
+    if (!authData) return null;
+    
+    const { token, timestamp } = JSON.parse(authData);
+    
+    if (isTokenExpired(timestamp)) {
+      localStorage.removeItem('authData');
+      return null;
+    }
+    
+    return token;
+  } catch (error) {
+    localStorage.removeItem('authData');
+    return null;
+  }
+};
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,23 +70,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await authService.testConnection();
         console.log('Backend connection successful');
 
-        const token = localStorage.getItem('token');
+        const token = getValidToken();
         if (token) {
           console.log('Token found, getting profile...');
+          // Update localStorage with current token format
+          setTokenWithTimestamp(token);
           const userData = await authService.getProfile();
           setUser(userData);
           console.log('User profile loaded:', userData);
+        } else {
+          console.log('No valid token found or token expired');
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        localStorage.removeItem('token');
+        localStorage.removeItem('authData');
       } finally {
         setLoading(false);
       }
     };
 
     initializeAuth();
-  }, []);
+
+    // Check token expiration every minute
+    const interval = setInterval(() => {
+      const token = getValidToken();
+      if (!token && user) {
+        console.log('Token expired, logging out user');
+        setUser(null);
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -61,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await authService.login(email, password);
       
       if (response.token && response.user) {
-        localStorage.setItem('token', response.token);
+        setTokenWithTimestamp(response.token);
         setUser(response.user);
         console.log('AuthContext: Login successful', response.user);
       } else {
@@ -79,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await authService.register(username, email, password);
       
       if (response.token && response.user) {
-        localStorage.setItem('token', response.token);
+        setTokenWithTimestamp(response.token);
         setUser(response.user);
         console.log('AuthContext: Registration successful', response.user);
       } else {
@@ -93,7 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     console.log('AuthContext: Logging out');
-    localStorage.removeItem('token');
+    localStorage.removeItem('authData');
     setUser(null);
   };
 

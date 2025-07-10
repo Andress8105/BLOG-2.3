@@ -7,9 +7,16 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  // Get token from new storage format
+  try {
+    const authData = localStorage.getItem('authData');
+    if (authData) {
+      const { token } = JSON.parse(authData);
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (error) {
+    console.error('Error parsing auth data:', error);
+    localStorage.removeItem('authData');
   }
   return config;
 });
