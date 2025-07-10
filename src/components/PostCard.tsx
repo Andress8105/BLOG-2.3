@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, Tag, Download, ExternalLink, ImageIcon } from 'lucide-react';
+import ImageModal from './ImageModal';
 
 interface PostCardProps {
   post: {
@@ -32,6 +33,12 @@ interface PostCardProps {
 }
 
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
+  const [selectedImage, setSelectedImage] = React.useState<{
+    url: string;
+    name: string;
+    id: string;
+  } | null>(null);
+
   const handleDownload = async (postId: string, fileId: string, filename: string) => {
     try {
       const response = await fetch(`http://localhost:5000/api/posts/${postId}/download/${fileId}`);
@@ -67,8 +74,21 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     return fullUrl;
   };
 
+  const openImageModal = (image: any) => {
+    setSelectedImage({
+      url: getImageUrl(image.path),
+      name: image.originalName,
+      id: image._id
+    });
+  };
+
+  const closeImageModal = () => {
+    setSelectedImage(null);
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 mb-8">
+    <>
+      <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 mb-8">
       <div className="p-6">
         {/* Author Info */}
         <div className="flex items-center justify-between mb-6">
@@ -118,12 +138,13 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                       <img
                         src={imageUrl}
                         alt={image.originalName}
-                        className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                        className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
                         style={{ 
                           objectFit: 'cover'
                         }}
                         onError={handleImageError}
                         onLoad={() => console.log('Image loaded successfully:', imageUrl)}
+                        onClick={() => openImageModal(image)}
                       />
                       {/* Optional: Show filename on hover */}
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-end">
@@ -205,7 +226,20 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <ImageModal
+          isOpen={!!selectedImage}
+          onClose={closeImageModal}
+          imageUrl={selectedImage.url}
+          imageName={selectedImage.name}
+          postId={post._id}
+          imageId={selectedImage.id}
+        />
+      )}
+    </>
   );
 };
 
