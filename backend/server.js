@@ -27,7 +27,15 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, path) => {
+    // Set proper headers for images
+    if (path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+      res.setHeader('Content-Type', 'image/*');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+  }
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);

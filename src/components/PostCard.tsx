@@ -50,8 +50,13 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.error('Error loading image:', e.currentTarget.src);
-    e.currentTarget.style.display = 'none';
+    const target = e.currentTarget;
+    console.error('Error loading image:', target.src);
+    
+    // Replace with a placeholder or hide the image
+    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzBMMTMwIDEwMEgxMTBWMTMwSDkwVjEwMEg3MEwxMDAgNzBaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LXNpemU9IjEyIj5JbWFnZW4gbm8gZGlzcG9uaWJsZTwvdGV4dD4KPHN2Zz4=';
+    target.alt = 'Imagen no disponible';
+    target.className = target.className.replace('hover:scale-105', '');
   };
 
   const getImageUrl = (imagePath: string) => {
@@ -102,29 +107,32 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           <div className="mb-6">
             <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <ImageIcon className="w-5 h-5 mr-2" />
-              Imágenes:
+              Imágenes ({post.images.length}):
             </h4>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {post.images.map((image, index) => {
                 const imageUrl = getImageUrl(image.path);
                 return (
-                  <div key={image._id} className="w-full">
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div key={image._id} className="relative group">
+                    <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-300 transition-colors">
                       <img
                         src={imageUrl}
                         alt={image.originalName}
-                        className="w-full h-auto rounded-lg shadow-md border border-gray-300 max-w-full"
+                        className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                         style={{ 
-                          maxWidth: '100%', 
-                          height: 'auto',
-                          objectFit: 'contain'
+                          objectFit: 'cover'
                         }}
                         onError={handleImageError}
                         onLoad={() => console.log('Image loaded successfully:', imageUrl)}
                       />
-                      <p className="text-sm text-gray-600 mt-3 text-center font-medium">
-                        📷 {image.originalName}
-                      </p>
+                      {/* Optional: Show filename on hover */}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-end">
+                        <div className="w-full p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <p className="text-white text-sm font-medium truncate">
+                            {image.originalName}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
