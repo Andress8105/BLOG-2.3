@@ -41,7 +41,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
   const handleDownload = async (postId: string, fileId: string, filename: string) => {
     try {
-      const response = await fetch(`https://blog-backen-qgmz.onrender.com/api/posts/${postId}/download/${fileId}`);
+      const response = await fetch(`http://localhost:5000/api/posts/${postId}/download/${fileId}`);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -69,7 +69,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const getImageUrl = (imagePath: string) => {
     // Ensure the path starts with uploads/
     const cleanPath = imagePath.startsWith('uploads/') ? imagePath : `uploads/${imagePath}`;
-    const fullUrl = `https://blog-backen-qgmz.onrender.com/${cleanPath}`;
+    const fullUrl = `http://localhost:5000/${cleanPath}`;
     console.log('Image URL:', fullUrl);
     return fullUrl;
   };

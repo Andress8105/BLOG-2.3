@@ -28,7 +28,7 @@ const ImageModal: React.FC<ImageModalProps> = ({
       const a = document.createElement('a');
       a.href = url;
       a.download = imageName;
-      document.body.appendChild(a);
+      a.download = imageName || 'image';
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
