@@ -22,7 +22,7 @@ const ImageModal: React.FC<ImageModalProps> = ({
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/posts/${postId}/download/${imageId}`);
+      const response = await fetch(`https://blog-backen-qgmz.onrender.com/api/posts/${postId}/download/${imageId}`);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
